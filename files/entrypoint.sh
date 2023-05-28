@@ -310,7 +310,7 @@ module.exports = {
   "apps":[
       {
           "name":"web",
-          "script":"/home/choreouser/web.js run -c /tmp/config.json"
+          "script":"/app/web.js run -c /tmp/config.json"
       },
       {
           "name":"argo",
@@ -321,8 +321,8 @@ EOF
   [[ -n "${NEZHA_SERVER}" && -n "${NEZHA_PORT}" && -n "${NEZHA_KEY}" ]] && cat >> /tmp/ecosystem.config.js << EOF
       },
       {
-          "name":"nezha",
-          "script":"/home/choreouser/nezha-agent",
+          "name":"n",
+          "script":"/app/n.js",
           "args":"-s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${TLS}"
 EOF
   
@@ -330,7 +330,7 @@ EOF
       },
       {
           "name":"ttyd",
-          "script":"/home/choreouser/ttyd",
+          "script":"/app/ttyd",
           "args":"-c ${WEB_USERNAME}:${WEB_PASSWORD} -p 2222 bash"
 EOF
 
