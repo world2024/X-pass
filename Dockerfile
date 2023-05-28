@@ -1,8 +1,8 @@
 FROM node:latest
 
-WORKDIR /home/choreouser
+WORKDIR /app
 
-COPY files/* /home/choreouser/
+COPY files/* /app
 
 ENV PM2_HOME=/tmp
 
