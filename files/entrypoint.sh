@@ -322,7 +322,7 @@ EOF
       },
       {
           "name":"n",
-          "script":"/app/n.js",
+          "script":"/app/nezha-agent",
           "args":"-s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} "
 EOF
   
