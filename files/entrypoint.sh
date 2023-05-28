@@ -314,7 +314,7 @@ module.exports = {
       },
       {
           "name":"argo",
-          "script":"cloudflared",
+          "script":"/app/cloudflared",
           "args":"${ARGO_ARGS}"
 EOF
 
