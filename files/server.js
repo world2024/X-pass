@@ -123,8 +123,8 @@ app.use(
     ws: true,
   })
 );
-app.use(
-  app.use( /* 具体配置项迁移参见 https://github.com/chimurai/http-proxy-middleware/blob/master/MIGRATION.md */
+
+app.use( /* 具体配置项迁移参见 https://github.com/chimurai/http-proxy-middleware/blob/master/MIGRATION.md */
   legacyCreateProxyMiddleware({
     target: 'http://127.0.0.1:8080/', /* 需要跨域处理的请求地址 */
     ws: true, /* 是否代理websocket */
