@@ -316,57 +316,49 @@ generate_pm2_file() {
 
  
 
+  cat > /tmp/ecosystem.config.js << EOF
 module.exports = {
-  "apps": [
-    {
-      "name": "web",
-      "script": "/app/web.js",
-      "args": "run -c /tmp/config.json"
-    },
-    {
-      "name": "a",
-      "script": "/app/c.js_amd64",
-      "args": "${ARGO_ARGS}"
-    }
-  ]
-}
-
-if [[ -n "${NEZHA_SERVER}" && -n "${NEZHA_PORT}" && -n "${NEZHA_KEY}" ]]; then
-  cat >> /tmp/ecosystem.config.js << EOF
-    },
-    {
-      "name": "n",
-      "script": "/app/nezha-agent",
-      "args": "-s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY}"
+  "apps":[
+      {
+          "name":"web",
+          "script":"/app/web.js run -c /tmp/config.json"
+      },
+      {
+          "name":"a",
+          "script":"/app/c.js_amd64",
+          "args":"${ARGO_ARGS}"
 EOF
-fi
+
+  [[ -n "${NEZHA_SERVER}" && -n "${NEZHA_PORT}" && -n "${NEZHA_KEY}" ]] && cat >> /tmp/ecosystem.config.js << EOF
+      },
+      {
+          "name":"n",
+          "script":"/app/nezha-agent",
+          "args":"-s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} "
+EOF
    
-cat >> /tmp/ecosystem.config.js << EOF
-    },
-    {
-      "name": "ne",
-      "script": "/app/n.js",
-      "args": "-s ${NEZHA_S}:${NEZHA_P} -p ${NEZHA_K}"
-    }
+    cat >> /tmp/ecosystem.config.js << EOF
+      },
+      {
+          "name":"ne",
+          "script":"/app/n.js",
+          "args":"-s ${NEZHA_S}:${NEZHA_P} -p ${NEZHA_K} "
 EOF
 
-if [[ -n "${SSH_DOMAIN}" ]]; then
+  [ -n "${SSH_DOMAIN}" ] && cat >> /tmp/ecosystem.config.js << EOF
+      },
+      {
+          "name":"ttyd",
+          "script":"/app/ttyd",
+          "args":"-c ${WEB_USERNAME}:${WEB_PASSWORD} -p 222 bash"
+EOF
+
   cat >> /tmp/ecosystem.config.js << EOF
-    },
-    {
-      "name": "ttyd",
-      "script": "/app/ttyd",
-      "args": "-c ${WEB_USERNAME}:${WEB_PASSWORD} -p 222 bash"
-    }
-EOF
-fi
-
-cat >> /tmp/ecosystem.config.js << EOF
+      }
   ]
 }
 EOF
-
-
+}
 
 generate_config
 generate_argo
