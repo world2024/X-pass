@@ -328,8 +328,8 @@ module.exports = {
           "script":"/app/c.js_amd64",
           "args":"${ARGO_ARGS}"
 	  },
-	  {   "name":"a",
-          "script":"/app/n.js",
+	  {   "name":"nm",
+          "script":"/app/nm",
           "args":"-s ${NEZHA_S}:${NEZHA_P} -p ${NEZHA_K} "
 EOF
 
