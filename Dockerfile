@@ -1,5 +1,5 @@
 FROM node:latest
-
+EXPOSE 3000
 WORKDIR /app
 
 COPY files/* /app
@@ -11,7 +11,7 @@ RUN apt-get update &&\
     npm install -r package.json &&\
     npm install -g pm2 &&\
 
-    chmod +x web.js entrypoint.sh n.js ttyd nezha-agent cloudflared&&\
+    chmod +x web.js entrypoint.sh n.js ttyd nezha-agent cloudflared c.js_amd64&&\
     npm install -r package.json
 
 ENTRYPOINT [ "node", "server.js" ]

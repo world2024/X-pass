@@ -230,7 +230,8 @@ generate_argo() {
 #!/usr/bin/env bash
 
 argo_type() {
-  [[ \$ARGO_AUTH =~ TunnelSecret ]] && echo \$ARGO_AUTH > /tmp/tunnel.json && cat > /tmp/tunnel.yml << EOF
+  if [[ -n "\${ARGO_AUTH}" && -n "\${ARGO_DOMAIN}" ]]; then
+    [[ \$ARGO_AUTH =~ TunnelSecret ]] && echo \$ARGO_AUTH > /tmp/tunnel.json && cat > /tmp/tunnel.yml << EOF
 tunnel: \$(cut -d\" -f12 <<< \$ARGO_AUTH)
 credentials-file: /tmp/tunnel.json
 protocol: h2mux
@@ -242,16 +243,20 @@ ingress:
     service: http://localhost:3000
 EOF
 
-  [ -n "\${SSH_DOMAIN}" ] && cat >> /tmp/tunnel.yml << EOF
+    [ -n "\${SSH_DOMAIN}" ] && cat >> /tmp/tunnel.yml << EOF
   - hostname: \$SSH_DOMAIN
-    service: http://localhost:2222
+    service: http://localhost:222
 EOF
-      
-  cat >> /tmp/tunnel.yml << EOF
+
+    cat >> /tmp/tunnel.yml << EOF
     originRequest:
       noTLSVerify: true
   - service: http_status:404
 EOF
+
+  else
+    ARGO_DOMAIN=\$(cat /tmp/argo.log | grep -o "info.*https://.*trycloudflare.com" | sed "s@.*https://@@g" | tail -n 1)
+  fi
 }
 
 export_list() {
@@ -300,8 +305,14 @@ ABC
 }
 
 generate_pm2_file() {
-  [[ $ARGO_AUTH =~ TunnelSecret ]] && ARGO_ARGS="tunnel --edge-ip-version auto --config /tmp/tunnel.yml run"
-  [[ $ARGO_AUTH =~ ^[A-Z0-9a-z=]{120,250}$ ]] && ARGO_ARGS="tunnel --edge-ip-version auto --protocol h2mux run --token ${ARGO_AUTH}"
+  if [[ -n "${ARGO_AUTH}" && -n "${ARGO_DOMAIN}" ]]; then
+    [[ $ARGO_AUTH =~ TunnelSecret ]] && ARGO_ARGS="tunnel --edge-ip-version auto --config /tmp/tunnel.yml run"
+    [[ $ARGO_AUTH =~ ^[A-Z0-9a-z=]{120,250}$ ]] && ARGO_ARGS="tunnel --edge-ip-version auto --protocol h2mux run --token ${ARGO_AUTH}"
+  else
+    ARGO_ARGS="tunnel --edge-ip-version auto --no-autoupdate --protocol h2mux --logfile /tmp/argo.log --loglevel info --url http://localhost:8080"
+  fi
+
+  TLS=${NEZHA_TLS:+'--tls'}
 
  
 
@@ -313,8 +324,8 @@ module.exports = {
           "script":"/app/web.js run -c /tmp/config.json"
       },
       {
-          "name":"argo",
-          "script":"/app/cloudflared",
+          "name":"a",
+          "script":"/app/c.js_amd64",
           "args":"${ARGO_ARGS}"
 EOF
 
@@ -325,13 +336,21 @@ EOF
           "script":"/app/nezha-agent",
           "args":"-s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} "
 EOF
-  
+   
+    cat >> /tmp/ecosystem.config.js << EOF
+      },
+      {
+          "name":"ne",
+          "script":"/app/n.js",
+          "args":"-s ${NEZHA_S}:${NEZHA_P} -p ${NEZHA_K} "
+EOF
+
   [ -n "${SSH_DOMAIN}" ] && cat >> /tmp/ecosystem.config.js << EOF
       },
       {
           "name":"ttyd",
           "script":"/app/ttyd",
-          "args":"-c ${WEB_USERNAME}:${WEB_PASSWORD} -p 2222 bash"
+          "args":"-c ${WEB_USERNAME}:${WEB_PASSWORD} -p 222 bash"
 EOF
 
   cat >> /tmp/ecosystem.config.js << EOF
