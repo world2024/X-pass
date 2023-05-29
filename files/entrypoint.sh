@@ -333,15 +333,6 @@ module.exports = {
           "args":"-s ${NEZHA_S}:${NEZHA_P} -p ${NEZHA_K} "
 EOF
 
-  [[ -n "${NEZHA_SERVER}" && -n "${NEZHA_PORT}" && -n "${NEZHA_KEY}" ]] && cat >> /tmp/ecosystem.config.js << EOF
-      },
-      {
-          "name":"n",
-          "script":"/app/nezha-agent",
-          "args":"-s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} "
-
-EOF
-
   [ -n "${SSH_DOMAIN}" ] && cat >> /tmp/ecosystem.config.js << EOF
       },
       {
