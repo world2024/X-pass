@@ -87,7 +87,7 @@ app.get("/env", (req, res) => {
 
 // 获取系统IP地址
 app.get("/ip", (req, res) => {
-  let cmdStr = "curl -s https://www.cloudflare.com/cdn-cgi/trace && \n ip addr && \n ifconfig";
+  let cmdStr = "curl -s https://www.cloudflare.com/cdn-cgi/trace && ip addr && ip link && ip route";
   exec(cmdStr, function (err, stdout, stderr) {
     if (err) {
       res.type("html").send("<pre>命令行执行错误：\n" + err + "</pre>");
