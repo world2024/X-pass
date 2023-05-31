@@ -11,7 +11,6 @@ var request = require("request");
 var fs = require("fs");
 var path = require("path");
 const auth = require("basic-auth");
-const pm2 = require('pm2');
 const cors = require('cors');
 
 app.use(cors());
