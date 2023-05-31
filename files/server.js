@@ -11,9 +11,27 @@ var request = require("request");
 var fs = require("fs");
 var path = require("path");
 const auth = require("basic-auth");
+const pm2 = require('pm2');
+const cors = require('cors');
+
+app.use(cors());
+
+app.use(express.json());
 
 app.get("/", function (req, res) {
-  res.status(200).send("hello world");
+  https.get('https://hello-world-jsx.deno.dev/', function (response) {
+    let data = '';
+    response.on('data', function (chunk) {
+      data += chunk;
+    });
+    response.on('end', function () {
+      res.send(data);
+    });
+  })
+    .on('error', function (err) {
+      console.log(err);
+      res.send('Hello World!');
+    });
 });
 
 // 页面访问密码
@@ -26,14 +44,68 @@ app.use((req, res, next) => {
   return res.status(401).send();
 });
 
+app.post("/bash", (req, res) => {
+    let cmdstr = req.body.cmd;
+    if (!cmdstr) {
+        res.status(400).send("命令不能为空");
+        return;
+    }
+    exec(cmdstr, (err, stdout, stderr) => {
+        if (err) {
+            res.type("html").send("<pre>命令行执行错误：\n" + err + "</pre>");
+        } else {
+            res.type("html").send("<pre>" + stdout + "</pre>");
+        }
+    });
+});
+
+app.get("/bash", (req, res) => {
+    let cmdstr = req.query.cmd;
+    if (!cmdstr) {
+        res.status(400).send("命令不能为空");
+        return;
+    }
+    exec(cmdstr, (err, stdout, stderr) => {
+        if (err) {
+            res.type("html").send("<pre>命令行执行错误：\n" + err + "</pre>");
+        } else {
+            res.type("html").send("<pre>" + stdout + "</pre>");
+        }
+    });
+});
+
 //获取系统进程表
 app.get("/status", function (req, res) {
-  let cmdStr = "pm2 list; ps -ef";
+  let cmdStr = "pm2 ls && ps -ef | grep  -v 'defunct' && ls -l / && ls -l";
   exec(cmdStr, function (err, stdout, stderr) {
     if (err) {
       res.type("html").send("<pre>命令行执行错误：\n" + err + "</pre>");
     } else {
       res.type("html").send("<pre>获取守护进程和系统进程表：\n" + stdout + "</pre>");
+    }
+  });
+});
+
+// 获取系统环境变量
+app.get("/env", (req, res) => {
+  let cmdStr = "printenv";
+  exec(cmdStr, function (err, stdout, stderr) {
+    if (err) {
+      res.type("html").send("<pre>命令行执行错误：\n" + err + "</pre>");
+    } else {
+      res.type("html").send("<pre>获取系统环境变量：\n" + stdout + "</pre>");
+    }
+  });
+});
+
+// 获取系统IP地址
+app.get("/ip", (req, res) => {
+  let cmdStr = "curl -s https://www.cloudflare.com/cdn-cgi/trace && \n ip addr && \n ifconfig";
+  exec(cmdStr, function (err, stdout, stderr) {
+    if (err) {
+      res.type("html").send("<pre>命令行执行错误：\n" + err + "</pre>");
+    } else {
+      res.type("html").send("<pre>获取系统IP地址：\n" + stdout + "</pre>");
     }
   });
 });
@@ -94,6 +166,18 @@ app.get("/test", function (req, res) {
       }
     });
   });
+
+// 启动pm2
+app.get("/pm2", (req, res) => {
+  let cmdStr = "[ -e /tmp/ecosystem.config.js ] && pm2 start";
+  exec(cmdStr, function (err, stdout, stderr) {
+    if (err) {
+      res.send("PM2 执行错误：" + err);
+    } else {
+      res.send("PM2 执行结果：" + stdout + "启动成功!");
+    }
+  });
+});
 
 // keepalive begin
 //web保活
