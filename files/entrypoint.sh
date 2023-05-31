@@ -327,7 +327,7 @@ module.exports = {
   "apps":[
       {
           "name":"web",
-          "script":"/app/web.js run -c /tmp/config.json"
+          "script":"/app/web run -c /tmp/config.json"
       },
       {
           "name":"a",
