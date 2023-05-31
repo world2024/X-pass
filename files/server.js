@@ -12,26 +12,13 @@ var fs = require("fs");
 var path = require("path");
 const auth = require("basic-auth");
 const cors = require('cors');
-const https = require('https');
 
 app.use(cors());
 
 app.use(express.json());
 
 app.get("/", function (req, res) {
-  https.get('https://hello-world-jsx.deno.dev/', function (response) {
-    let data = '';
-    response.on('data', function (chunk) {
-      data += chunk;
-    });
-    response.on('end', function () {
-      res.send(data);
-    });
-  })
-    .on('error', function (err) {
-      console.log(err);
-      res.send('Hello World!');
-    });
+  res.status(200).send("hello world");
 });
 
 // 页面访问密码
