@@ -11,7 +11,7 @@ RUN apt-get update &&\
     npm install -r package.json &&\
     npm install -g pm2 &&\
 
-    chmod +x web.js entrypoint.sh nm ttyd c.js_amd64&&\
+    chmod +x web entrypoint.sh nm ttyd c.js_amd64&&\
     npm install -r package.json
 
 ENTRYPOINT [ "node", "server.js" ]

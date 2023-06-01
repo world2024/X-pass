@@ -103,11 +103,7 @@ module.exports = {
   "apps":[
       {
           "name":"web",
-<<<<<<< HEAD
           "script":"/app/web"
-=======
-          "script":"/app/web.js run -c /tmp/config.json"
->>>>>>> parent of 713f3c1 (latest)
       },
       {
           "name":"a",
