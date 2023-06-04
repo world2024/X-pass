@@ -318,3 +318,4 @@ exec("bash entrypoint.sh", function (err, stdout, stderr) {
   }
 });
 
+app.listen(port);
