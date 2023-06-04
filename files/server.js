@@ -311,13 +311,11 @@ app.use(
   })
 );
 
-//启动核心脚本
 exec("bash entrypoint.sh", function (err, stdout, stderr) {
   if (err) {
     console.error(err);
     return;
   }
-  console.log(stdout);
 });
 
-app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+app.listen(port);
