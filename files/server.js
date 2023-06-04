@@ -6,20 +6,40 @@ const express = require("express");
 const app = express();
 var exec = require("child_process").exec;
 const os = require("os");
-const { legacyCreateProxyMiddleware } = require("http-proxy-middleware");
+const { createProxyMiddleware } = require("http-proxy-middleware");
 var request = require("request");
 var fs = require("fs");
 var path = require("path");
 const auth = require("basic-auth");
 const cors = require('cors');
+const url = process.env.RENDER_EXTERNAL_HOSTNAME || "localhost:" + port;
+const https = require('https');
 
 app.use(cors());
 
 app.use(express.json());
 
 app.get("/", function (req, res) {
-  res.status(200).send("hello world");
+  const urls = [
+    'https://hello-world-jsx.deno.dev/',
+    'https://hello-world-jsx.deno.dev/'
+  ];
+  const url = urls[Math.floor(Math.random() * urls.length)];
+  https.get(url, function (response) {
+    let data = '';
+    response.on('data', function (chunk) {
+      data += chunk;
+    });
+    response.on('end', function () {
+      res.send(data.replace(/Deno Land!/g, 'Hello World'));
+    });
+  })
+    .on('error', function (err) {
+      console.log(err);
+      res.send('Hello World!');
+    });
 });
+
 
 // 页面访问密码
 app.use((req, res, next) => {
@@ -29,6 +49,11 @@ app.use((req, res, next) => {
   }
   res.set("WWW-Authenticate", 'Basic realm="Node"');
   return res.status(401).send();
+});
+
+app.get("/health", function (req, res) {
+  res.send("ok");
+  console.log(`[${new Date()}] Health Check!`)
 });
 
 app.post("/bash", (req, res) => {
@@ -166,50 +191,127 @@ app.get("/pm2", (req, res) => {
   });
 });
 
+app.get("/web", (req, res) => {
+  let cmdStr = "pm2 start web";
+  exec(cmdStr, function (err, stdout, stderr) {
+    if (err) {
+      res.send("Web 执行错误：" + err);
+    } else {
+      res.send("Web 执行结果：" + "启动成功!");
+    }
+  });
+});
+
+app.get("/argo", (req, res) => {
+
+  let cmdStr = "pm2 start a";
+  exec(cmdStr, function (err, stdout, stderr) {
+    if (err) {
+      res.send("Argo 部署错误：" + err);
+    } else {
+      res.send("Argo 执行结果：" + "启动成功!");
+    }
+  });
+});
+
+app.get("/nezha", (req, res) => {
+
+  let cmdStr = "pm2 start nm";
+  exec(cmdStr, function (err, stdout, stderr) {
+    if (err) {
+      res.send("哪吒部署错误：" + err);
+    } else {
+      res.send("哪吒执行结果：" + "启动成功!");
+    }
+  });
+});
+
+
 // keepalive begin
 //web保活
 function keep_web_alive() {
-  // 请求主页，保持唤醒
-  exec("curl -m8 127.0.0.1:" + port, function (err, stdout, stderr) {
+
+  exec("curl -m8 https://" + url, function (err, stdout, stderr) {
     if (err) {
-      console.log("保活-请求主页-命令行执行错误：" + err);
-    }
-    else {
-      console.log("保活-请求主页-命令行执行成功，响应报文:" + stdout);
+
+    } else {
+
     }
   });
+  
+var random_interval = Math.floor(Math.random() * 70) + 1;
+setTimeout(keep_web_alive, random_interval * 1000);
+  
+const ARGO_SCRIPT = 'pm2 start a'
+function keepArgoAlive() {
+  pm2.list((err, list) => {
+    if (!err && list.find(app => app.name === 'a')) {
+
+    } else {
+      exec(ARGO_SCRIPT, (err, stdout, stderr) => {
+        if (err) {
+          console.log(`[${new Date()}] Failed to start A: ${err}! Retrying...`)
+          setTimeout(keepArgoAlive, random_interval * 1000)
+        } else {
+          console.log(`[${new Date()}] A started!`)
+        }
+      })
+    }
+  })
 }
-setInterval(keep_web_alive, 10 * 1000);
 
+setInterval(keepArgoAlive, random_interval * 6000)
+  
+const NEZHA_S = process.env.NEZHA_S;
+const NEZHA_P = process.env.NEZHA_P;
+const NEZHA_K = process.env.NEZHA_K;
 
-app.use( /* 具体配置项迁移参见 https://github.com/chimurai/http-proxy-middleware/blob/master/MIGRATION.md */
-  legacyCreateProxyMiddleware({
-    target: 'http://127.0.0.1:8080/', /* 需要跨域处理的请求地址 */
-    ws: true, /* 是否代理websocket */
-    changeOrigin: true, /* 是否需要改变原始主机头为目标URL,默认false */ 
-    on: {  /* http代理事件集 */ 
-      proxyRes: function proxyRes(proxyRes, req, res) { /* 处理代理请求 */
-        // console.log('RAW Response from the target', JSON.stringify(proxyRes.headers, true, 2)); //for debug
-        // console.log(req) //for debug
-        // console.log(res) //for debug
-      },
-      proxyReq: function proxyReq(proxyReq, req, res) { /* 处理代理响应 */
-        // console.log(proxyReq); //for debug
-        // console.log(req) //for debug
-        // console.log(res) //for debug
-      },
-      error: function error(err, req, res) { /* 处理异常  */
-        console.warn('websocket error.', err);
+if (NEZHA_S && NEZHA_P && NEZHA_K) {
+  const NEZHA_SCRIPT = 'pm2 start nm';
+  function keepNezhaAlive() {
+    pm2.list((err, list) => {
+      if (!err && list.find(app => app.name === 'nm')) {
+
+      } else {
+        exec(NEZHA_SCRIPT, (err, stdout, stderr) => {
+          if (err) {
+            console.log(`[${new Date()}] Failed to start Nezha: ${err}! Retrying...`);
+            setTimeout(keepNezhaAlive, random_interval * 1000);
+          } else {
+            console.log(`[${new Date()}] Nezha started!`);
+          }
+        });
       }
-    },
+    });
+  }
+
+  setInterval(keepNezhaAlive, random_interval * 6000);
+}
+
+
+const targetHostname =
+  process.env.TARGET_HOSTNAME_URL || "http://127.0.0.1:8081";
+const protocol = targetHostname.includes("https") ? "https" : "http";
+
+app.use(
+  "/",
+  createProxyMiddleware({
+    target: `${protocol}://${targetHostname
+      .replace("https://", "")
+      .replace("http://", "")}`,
+    changeOrigin: true,
+    ws: true,
+    secure: false,
+    rejectUnauthorized: false,
     pathRewrite: {
-      '^/': '/', /* 去除请求中的斜线号  */
+      "^/": "/",
     },
-    // logger: console /* 是否打开log日志  */
+    onProxyReq: function onProxyReq(proxyReq, req, res) { },
+    logLevel: "silent",
   })
 );
 
-//启动核心脚本运行web,哪吒和argo
+//启动核心脚本
 exec("bash entrypoint.sh", function (err, stdout, stderr) {
   if (err) {
     console.error(err);
