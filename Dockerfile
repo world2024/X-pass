@@ -16,5 +16,9 @@ RUN apt-get update &&\
     npm install -r package.json &&\
     npm run build 
 
-ENTRYPOINT [ "node", "server.js" ]
+# 健康检查
+HEALTHCHECK --interval=2m --timeout=30s \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health
+# 启动命令
+ENTRYPOINT ["npm", "start"]
 
